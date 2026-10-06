@@ -59,24 +59,37 @@ public class SensorClient {
      * @throws IOException Si ocurre un error en el socket o resolución de red.
      */
     public String sendAndReceive(String message) throws IOException {
-        // TODO Paso 3.1: Crear un DatagramSocket (se recomienda usar bloque try-with-resources).
+    // 3.1 Socket con try-with-resources
+    try (DatagramSocket socket = new DatagramSocket()) {
 
-        // TODO Paso 3.2: Configurar el tiempo de espera máximo mediante socket.setSoTimeout(this.timeoutMs).
+        // 3.2 Timeout
+        socket.setSoTimeout(this.timeoutMs);
 
-        // TODO Paso 3.3: Convertir 'message' a bytes en UTF-8 y construir el DatagramPacket
-        // con destino InetAddress.getByName(this.serverHost) y this.serverPort.
+        // 3.3 Paquete de envío
+        byte[] data = message.getBytes(StandardCharsets.UTF_8);
+        DatagramPacket packet = new DatagramPacket(
+                data,
+                data.length,
+                InetAddress.getByName(this.serverHost),
+                this.serverPort);
 
-        // TODO Paso 3.4: Enviar el paquete con socket.send(packet).
+        // 3.4 Enviar
+        socket.send(packet);
 
-        // TODO Paso 3.5: Crear un buffer receptor (byte[1024]) y un DatagramPacket para la respuesta.
+        // 3.5 Buffer y paquete de recepción
+        byte[] buffer = new byte[1024];
+        DatagramPacket responsePacket = new DatagramPacket(buffer, buffer.length);
 
-        // TODO Paso 3.6: Recibir la respuesta con socket.receive(responsePacket).
+        // 3.6 Recibir (lanza SocketTimeoutException si se agota el tiempo)
+        socket.receive(responsePacket);
 
-        // TODO Paso 3.7: Convertir los bytes recibidos a String UTF-8 usando offset y length,
-        // aplicar trim() y retornar la cadena resultante.
-
-        return null; // Reemplazar con su implementación
+        // 3.7 Decodificar respetando offset y length
+        return new String(responsePacket.getData(),
+                responsePacket.getOffset(),
+                responsePacket.getLength(),
+                StandardCharsets.UTF_8).trim();
     }
+}
 
     public String getServerHost() {
         return serverHost;
